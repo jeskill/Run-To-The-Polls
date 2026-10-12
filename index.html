@@ -13,6 +13,10 @@
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <link rel="stylesheet" href="css/leaflet-measure.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,100..900;1,100..900&family=Permanent+Marker&display=swap" rel="stylesheet">
+
         <style>
         html, body, #map {
             width: 100%;
@@ -20,6 +24,80 @@
             padding: 0;
             margin: 0;
         }
+
+                /* TITLE AND LOGO STYLE */
+        .custom-map-panel {
+            background: rgba(255,255,255,0.40); /*white with 50% opacity*/
+            padding: 2px;
+            border-radius: 2px;
+            max-width: 25%; 
+            text-align: justify;           
+            display: flex;
+            flex-direction: column;
+            align-items:flex-start;
+            gap: 2px;
+        }
+
+        .custom-map-panel img {
+            max-width: min(100%, 25vw);
+            height: auto;
+            border-radius: 0px;
+        }
+
+        .custom-map-panel h1 {
+            margin: 0;
+            font-size: clamp(12px, 5vw, 72px); /* Adjust the font size as needed */
+            font-family: 'Permanent Marker', cursive; /* Use the same font as the main title */ 
+            color: #fabe39; /* Match the color of the main title */
+            text-shadow:
+                -3px -3px 0 black,
+                3px -3px 0 black,
+                -3px 3px 0 black,
+                3px 3px 0 black;
+        }
+
+        .custom-map-panel h2 {
+            margin: 0;
+            font-size: clamp(12px, 3vw, 36px); /* Adjust the font size as needed */
+            line-height: 1.2;
+            text-align: center;
+            
+            font-family: 'Overpass', sans-serif; /* different font */ 
+            color: #0076c0; /* Match the color of the main title */
+            text-shadow:
+        }
+        
+
+        .custom-map-panel p {   
+            margin: 0;
+            width: 100px;
+            font-size: clamp(12px, 1.5vw, 20px); /* Adjust the font size as needed */
+            text-align: center;
+            font-family: 'Overpass', sans-serif;
+            color: #333; /* Set the text color */
+        }
+
+        .custom-map-panel2 {
+            background: rgba(255,255,255,0.50); /*white with 85% opacity*/
+            padding: 2px;
+            border-radius: 10px;
+            max-width: 100%; 
+            text-align: left;           
+            display: flex;
+            flex-direction: column;
+            align-items:flex-start;
+            gap: 2px;
+        }
+
+        .custom-map-panel2 h2 {
+            margin: 0;
+            font-size: clamp(12px, 3vw, 36px); /* Adjust the font size as needed */
+            line-height: 1.2;
+            text-align: center;
+            font-family: 'Overpass', sans-serif; /* different font */ 
+            color: #0076c0; /* Match the color of the main title */
+        }
+        
         </style>
         <title>Run to the Polls</title>
     </head>
@@ -41,14 +119,20 @@
         <script src="js/leaflet-measure.js"></script>
         <script src="data/NoKingsMeetups_1.js"></script>
         <script>
+
+        // HIGHLIGHT FEATURE
         var highlightLayer;
         function highlightFeature(e) {
             highlightLayer = e.target;
             highlightLayer.openPopup();
         }
+
+        // INITIALIZE MAP
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
         })
+
+        // INITIALIZE HASH FOR MAP URL FRAGMENT
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -124,19 +208,46 @@
                 popup._contentNode.classList.remove('media');
             }
         }
-        var title = new L.Control({'position':'bottomleft'});
+
+        // TITLE CONTROL
+        var title = new L.Control({'position':'topright'});
+
         title.onAdd = function (map) {
-            this._div = L.DomUtil.create('div', 'info');
+            this._div = L.DomUtil.create('div', 'custom-map-panel');
             this.update();
             return this._div;
         };
         title.update = function () {
-            this._div.innerHTML = '<h2>Run to the Polls Sign Wave</h2>';
+            this._div.innerHTML = '<img src="images/NoKingsVoteEarly_Logo_horizontal_lightbg_nocrown.png" alt="Panel Image">\
+            <h1>Baltimore</h1>\
+            <h2>Run to the Polls Sign Wave</h2>'
         };
+
         title.addTo(map);
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
+
+        // SIGN UP CONTROL 
+        var signUp = new L.Control({'position':'bottomleft'});
+
+        signUp.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'custom-map-panel2');
+            this.update();
+            return this._div;
+        };
+        signUp.update = function () {
+            this._div.innerHTML = '<h2>Sign up <a href="https://forms.gle/2meqNobohWvV2vHW8" target="_blank">here</a></h2>';
+        };
+
+        signUp.addTo(map);
+
+        // ZOOM CONTROL
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+
+        // LOCATE CONTROL
         L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
         var measureControl = new L.Control.Measure({
             position: 'topleft',
@@ -178,6 +289,13 @@
                 },
                 mouseover: highlightFeature,
             });
+
+            const googleMapsUrl = `https://www.google.com/maps?q=${feature.geometry.coordinates[1]},${feature.geometry.coordinates[0]}`;
+            const googleMapsLinkHTML = googleMapsUrl ? '<a href="' + googleMapsUrl + '" target="_blank">View on Google Maps</a>' : '';
+            const appleMapsUrl = `https://maps.apple.com/?q=${feature.geometry.coordinates[1]},${feature.geometry.coordinates[0]}`;
+            const appleMapsLinkHTML = appleMapsUrl ? '<a href="' + appleMapsUrl + '" target="_blank">View on Apple Maps</a>' : '';
+            const mapsLinksHTML = (googleMapsLinkHTML || appleMapsLinkHTML) ? '<p>' + [googleMapsLinkHTML, appleMapsLinkHTML].filter(Boolean).join(' | ') + '</p>' : '';    
+ 
             var popupContent = '<table>\
                     <tr>\
                         <th scope="row">Site Name</th>\
@@ -190,6 +308,10 @@
                     <tr>\
                         <th scope="row">Start Time</th>\
                         <td>' + (feature.properties['Start Time'] !== null ? autolinker.link(String(feature.properties['Start Time']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Maps</th>\
+                        <td>' + mapsLinksHTML + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -206,7 +328,7 @@
         rotationOrigin: 'center center',
         icon: L.icon({
             iconUrl: 'markers/NoKingsMeetups_1.svg',
-            iconSize: [57.0, 57.0]
+            iconSize: [40.0, 40.0]
         }),
                 interactive: true,
             }
@@ -291,7 +413,7 @@
                 feature: layer.feature,
                 variables: {}
             };
-            layer.bindTooltip((exp_label_NoKingsMeetups_1_eval_expression(context) !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'MV Boli\', sans-serif;">' + exp_label_NoKingsMeetups_1_eval_expression(context)).replace(/\\n/g, '<br>') + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_NoKingsMeetups_1'});
+            layer.bindTooltip((exp_label_NoKingsMeetups_1_eval_expression(context) !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'MV Boli\', sans-serif;">' + exp_label_NoKingsMeetups_1_eval_expression(context)).replace(/\\n/g, '<br>') + '</div>':''), {permanent: true, offset: [15, -16], className: 'css_NoKingsMeetups_1'});
             labels.push(layer);
             totalMarkers += 1;
               layer.added = true;
